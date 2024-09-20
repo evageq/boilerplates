@@ -1,0 +1,37 @@
+- name: Pull the latest Draw.io Docker image
+  hosts: servers
+  become: true
+
+  tasks:
+    - name: Pull the latest Draw.io Docker image
+      docker_image:
+        name: jgraph/drawio
+        source: pull
+
+    - name: Run Draw.io container
+      docker_container:
+        name: drawio
+        image: jgraph/drawio
+        state: started
+        restart: true
+        restart_policy: always
+        ports:
+          - "8080:8080"
+        volumes:
+          - /srv/drawio/data:/data  
+
+    - name: Ensure Draw.io container is running
+      command: docker ps -f name=drawio
+      register: docker_ps_output
+
+    - name: Print Docker container status
+      debug:
+        msg: "{{ docker_ps_output.stdout_lines }}"
+
+    - name: Fetch the server IP address
+      set_fact:
+        server_ip: "{{ ansible_host }}"
+
+    - name: Display message on how to connect to Draw.io
+      debug:
+        msg: "You can connect to Draw.io at http://{{ server_ip }}:8080/?offline=1&https=0"
