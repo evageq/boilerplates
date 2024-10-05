@@ -1,0 +1,11 @@
+#cloud-config
+datasource:
+  Ec2:
+    strict_id: false
+ssh_pwauth: no
+users:
+- name: evage
+  sudo: 'ALL=(ALL) NOPASSWD:ALL'
+  shell: /bin/bash
+  ssh_authorized_keys:
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCvcYQw7m2pkzARzR2Y8ZcUxstXVq0XCrEZTqTc74uhEispsPriNy6Em8GkuxPdsnVsZa+JYhxY5mpq1q555ZKZm3NezBy4GOnv1d/l3q8KMaBTOLoApFnW09K6AlY5QGWjA+qoB/d/3SIU5oxbOJQvCjDQA40Rc09JSHjBKNd4UrBucFTQawkiBlrtIYFHS55y1pJJWDt85SH38dZWKXLsHWYxCjo9mjum2yD1PN3kCI8xnIvJYVR/kjOvp+ulJBDY9WSBahofuxA4pMgNEoehV8Q/1x9jwIDmskLCOlbytPburqq2eV79dqNTrXGAl6RFLVZk0JpxkMc9a5e1qGk/JDuso/LyBO1RkvSHOlEUeeNrNs7R4Tij3wpFfXhPiDQTz6/M1j4HsUf3eZsDM4PRzhGHMn6JukTSJ/umS3W5ItnIxOm26BCylSBJ/PDJsy/yxUhzRgUO4NejMxBqeSrqvUK80/5AkZF7HCtj5VqT5gNZajDkzcvHbzpBL5kLXOM= evage@debian
