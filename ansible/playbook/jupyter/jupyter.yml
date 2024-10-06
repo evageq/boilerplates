@@ -6,51 +6,56 @@
   tasks:
     - name: Pull the latest JupyterHub Docker image
       docker_image:
-        name: jupyterhub/datascience-notebook
+        name: quay.io/jupyter/datascience-notebook
         source: pull
 
     - name: Create directory for Jupyter
       file:
         path: /srv/jupyter/
         state: directory
-        owner: root
-        group: root
+        owner: "1000"
+        group: "1000"
         mode: '0755'
 
     - name: Create directory for Jupyter work
       file:
         path: /srv/jupyter/work
         state: directory
-        owner: root
-        group: root
+        owner: "1000"
+        group: "1000"
         mode: '0755'
 
     - name: Run JupyterHub container
       docker_container:
-        name: jupyterhub
-        image: jupyter/datascience-notebook
+        name: jupyter
+        image: quay.io/jupyter/datascience-notebook
         state: started
         restart_policy: always
         ports:
           - "8888:8888"
         volumes:
-          - /srv/jupyter/work:/home/jovyan/work
-        env:
-          JUPYTER_TOKEN: some_token
-        command: jupyterhub --no-ssl  # Run without SSL for testing; use SSL in production
+          - jupyter-work:/home/jovyan/work
 
-    - name: Ensure JupyterHub container is running
-      command: docker ps -f name=jupyterhub
-      register: docker_ps_output
+    - name: Fetch JupyterHub logs and wait for token
+      command: docker logs jupyter
+      register: jupyter_logs_output
+      until: jupyter_logs_output.stderr | regex_search('token=([a-f0-9]+)', '\\1')
+      retries: 10  # Retry 10 times
+      delay: 10  # Wait 10 seconds between retries
 
-    - name: Print Docker container status
-      debug:
-        msg: "{{ docker_ps_output.stdout_lines }}"
+    - name: Extract the Jupyter token from the logs
+      set_fact:
+        jupyter_token: "{{ (jupyter_logs_output.stderr | regex_search('token=([a-f0-9]+)', '\\1'))[0] }}"
+
+    - name: Ensure the token was successfully extracted
+      fail:
+        msg: "Could not extract the Jupyter token."
+      when: jupyter_token is not defined
 
     - name: Fetch the server connection IP address (used for connection)
       set_fact:
         server_ip: "{{ ansible_host }}"
 
-    - name: Display message on how to connect to JupyterHub
+    - name: Display connection URL with token
       debug:
-        msg: "You can connect to JupyterHub at http://{{ server_ip }}:8888"
+        msg: "You can connect to JupyterHub at http://{{ server_ip }}:8888/lab?token={{ jupyter_token }}"
