@@ -1,0 +1,19 @@
+---
+- name: Install NGINX on Debian-based systems
+  hosts: webservers
+  become: true
+  tasks:
+    - name: Update APT package manager cache
+      apt:
+        update_cache: yes
+
+    - name: Install NGINX
+      apt:
+        name: nginx
+        state: present
+
+    - name: Ensure NGINX is running and enabled at startup
+      service:
+        name: nginx
+        state: started
+        enabled: yes
